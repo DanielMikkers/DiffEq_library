@@ -530,11 +530,11 @@ class SolvePDE:
         Nx = np.size(x)
         Nt = np.size(t)
 
-        lamb1 = 1
-        lamb2 = 1
-
         k = (t[-1] - t[0])/Nt
         h = (x[-1] - x[0])/Nx
+
+        lamb1 = 1
+        lamb2 = 1
 
         w = np.zeros((Nx,Nt), dtype='complex_')
 
