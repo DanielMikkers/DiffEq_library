@@ -135,9 +135,13 @@ $$y' = y - x^2 + 1.$$
 This ODE has been solved and compared to its analytical solution on the interval $x \in [0,2]$:
 $$y = (x+1)^2-\frac{1}{2}e^x.$$
 In the figure below the absolute error of the numerical solution over the interval is shown.
-![img](./Error_interval.png)
+
+<img src="https://github.com/DanielMikkers/DiffEq_library/blob/main/Error_interval.png" width="600" height="450">
+
 In the figure below the absolute error of the numerical solution at the end of the interval ($x=2$) is shown at different stepsizes (or number of steps in the interval, which is $2/h$). 
-![img](./Error_step_size.png)
+
+<img src="https://github.com/DanielMikkers/DiffEq_library/blob/main/Error_step_size.png" width="600" height="450">
+
 Combining the information of both figures it can be seen that the Adam-Bashforth 3 step method is the most optimal solving method and Euler the least optimal solving method. Generally, it is recommanded to use the Adam-Bashforth 3 step method (`'ab3'`). 
 
 ### PDEs
