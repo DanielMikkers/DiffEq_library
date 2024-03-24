@@ -115,12 +115,81 @@ From this form it can be seen that $\Phi$ can only be calculated when $y_j$ is k
 In the order $n$ ODEs, $y_i \to \mathbf{y}_i$ or in code `y[i]` $\to$ `y[:,i]`. 
 
 ## Partial Differential Equations
+### Wave equation
+The wave equation is a PDE of the form
+$$\frac{\partial^2 u}{\partial t^2} = \alpha^2 \frac{\partial^2 u}{\partial x^2} \qquad 0 \leq x \leq l, \quad 0 \leq t$$
+The boundary condition for solving this are assumed to be:
+$$ u(0,t)=u(l,t)=0 \quad \text{for } t > 0,$$
+$$u(0,x)=f(x)$$
+$$\frac{\partial}{\partial t} u(x,0)=g(x) \quad \text{for } 0 \leq x \leq l.$$
+The numerical solution is obtained iteratively in time. The time is given by $t = j\Delta t$, $x = i\Delta x$ (where $i \in \{1,\ldots, m-2\} $), $\vec{w}$ is an $m-2$ dimensional vector, for different $j$ we have$:
+$$\vec{w}_{j=0} = f(\vec{x}),$$
+$$\vec{w}_{j=1} = (1-\lambda^2) f(x_i) + \frac{\lambda^2}{2} f(x_{i+1}) + \frac{\lambda^2}{2} f(x_{i-1}) + (\Delta t) g(x_i),$$
+$$\vec{w}_{j+1} = \mathbf{A} \vec{w}_j - \vec{w}_{j-1},$$
+with 
+$$\mathbf{A} = \begin{pmatrix} 2(1-\lambda^2) & \lambda^2 & & 0\\
+        \lambda^2 & \ddots & \ddots &  \\
+        & \ddots & \ddots &  \lambda^2 \\
+        0 &  & \lambda^2 & 2(1-\lambda^2)   \end{pmatrix}$$
+with $\lambda = \alpha (\Delta t)/(\Delta x) $.
 
-### Poisson Equation Type PDEs (Elliptic)
+### Static Schrödinger Equation (1D)
+One of the most famous equations of quantum mechanics is the Schrödinger equation. By calling `statSEQ_1d` you call the static Schrödinger equation (SEQ):
+$$\hat{H} \Psi(x) = - \frac{\hbar^2}{2m} \frac{\partial^2}{\partial x^2} \Psi(x) + V(x) \Psi(x) = E \Psi(x)$$
+In the code I have set $\hbar = 1, m = 0.5$. The SEQ can be numerically transformed to
+$$-\frac{1}{\Delta x^2} ( \Psi_{n+1} - 2\Psi_n + \Psi_{n-1} ) = E_n \Psi.$$
+The right-hand side represents the Hamiltonian, which can be written in matrix form:
+$${H} = \frac{1}{(\Delta x)^2}\left(\begin{array}{lccc} 2 + V(x_0) & \frac{-1}{h^2} &                &  0            \\ \\
+        -1         & \ddots         & \ddots         &               \\ \\
+                               & \ddots         & \ddots         &  -1    \\ \\
+        0                      &                & -1 & 2 + V(x_m)    \end{array} \right)$$
+The solution to the static SEQ are the eigenvalues ($E_n$) and eigenvectors ($\Psi$) of $H$. This can be solved for some potential $V(x)$. The static SEQ solver is called by `statSEQ_1d(x, V)`, for some one dimensional grid `x` and some potential `V`. The grid should be consist of equidistant point. The potential should either be a lambda function or a general function, e.g. for a simple parabolic potential:
 
-### Heat Equation Type PDEs (Parabolic)
+```
+V = lambda x: x**2
+```
 
-### Wave Equation Type PDEs (Hyperbolic)
+or
+
+```
+def V(x):
+    return x**2
+```
+The output are an ordered array of energies and an array of solutions $\Psi$, ordered by their energies. An example of calling the function is:
+
+```
+x = np.linspace(-2,2,100, endpoint=True)
+V = lambda x: x**2
+E, psi = statSEQ_1d(x, V)
+```
+
+### Dynamic Schrödinger Equation (1D)
+The dynamical Schrodinger (SEQ) is of the form
+$$i\hbar \frac{\partial}{\partial t} \Psi(x,t) = -\frac{\hbar^2}{2m} \frac{\partial^2}{\partial x^2} \Psi(x,t) + V(x)\Psi(x,t).$$
+In the code I have set $\hbar = 1$ and $m = 0.5$. Taking this to a numerical setting using the Crank-Nicolson method gives:
+$$\vec{w}_{j+1} = \mathbf{A}^{-1} \mathbf{B} \vec{w}_{j}$$
+$$\mathbf{A} = \begin{pmatrix} 1 + \lambda_1 + \lambda_2V(x_1) & -\frac{\lambda_1}{2} & & & 0  \\ \\
+ - \frac{\lambda_1}{2} & \ddots & \ddots & & \\ \\
+  & \ddots & \ddots & & - \frac{\lambda_1}{2} \\
+ 0 & & & - \frac{\lambda_1}{2} & 1 + \lambda_1 + \lambda_2V(x_n) \end{pmatrix}$$
+$$\mathbf{B} = \begin{pmatrix} 1 - \lambda_1 - \lambda_2V(x_1) & \frac{\lambda_1}{2} & & & 0  \\ \\
+ \frac{\lambda_1}{2} & \ddots & \ddots & & \\ \\
+  & \ddots & \ddots & & \frac{\lambda_1}{2} \\
+ 0 & & & \frac{\lambda_1}{2} & 1 - \lambda_1 - \lambda_2V(x_n) \end{pmatrix}$$
+ with $\lambda_1 = \frac{i\Delta t}{(\Delta x)^2}$ and $\lambda_2 = \frac{i\Delta t}{2}$. 
+ This matrix equation is solved iteratively for all $j \in \{1, \ldots, t_N/\Delta t\}$. The output of the solver is the wave function $\Psi(x,t)$.  
+
+ An example of calling the  dynamical SEQ solver is given below:
+ ```
+V = lambda x: 0.25 * x**2.0
+f = lambda x: np.exp(-x**2.0) / 2.5
+
+x = np.linspace(-5, 5, 100, endpoint=True)
+t = np.linspace(0, 20, 400, endpoint=True)
+
+psi = dynSEQ_1d(x, t, V, f(x))
+ ```
+ Here `V` is some potential, `f` is the initial wave function at $t_0$, `x` is the spacial domain on which the SEQ is solved and `t` is the time over which it is solved and evolves. Note that one may use the dynamical and static SEQ solvers together: the initial wave function at $t = 0$ can be obtained by calling `statSEQ_1d` and then can be fed to the dynamical SEQ solver `dynSEQ_1d`.
 
 ### Hyperbolic PDEs
 

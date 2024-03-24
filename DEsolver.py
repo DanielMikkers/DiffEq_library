@@ -466,11 +466,8 @@ class ODEivp:
         return phi
     
 class SolvePDE:
-    def wavePDE(self, a, x, t, f, g):
+    def waveEq(self, a, x, t, f, g):
         """
-        This function solves a wave equation of the form u_{tt} - a^2 u_{xx} = 0, 
-        with boundary conditions u(0,t)=u(l,t)=0, u(0,x)=f(x) and u_t(x,0)=g(x).
-
         Input:
             a : scalar, coefficient in wave equation
             x : array, the domain on which you want to define the PDE
@@ -515,14 +512,15 @@ class SolvePDE:
         Nx = np.size(x)
         dx = (x[-1] - x[0])/Nx
 
-        if isinstance(V, np.ndarray):
-            H = (1/dx**2) * ( np.diag(2*np.ones(Nx)) - np.diag(np.ones(Nx-1),1) - np.diag(np.ones(Nx-1),-1) ) + np.diag(V)
-        else:
-            H = (1/dx**2) * ( np.diag(2*np.ones(Nx)) - np.diag(np.ones(Nx-1),1) - np.diag(np.ones(Nx-1),-1) ) + np.diag(V(x))
+        H = (1/dx**2) * ( np.diag(2*np.ones(Nx)) - np.diag(np.ones(Nx-1),1) - np.diag(np.ones(Nx-1),-1) ) + np.diag(V(x))
 
         E, psi = spla.eig(H)
 
-        return E,psi
+        order = np.argsort(E)
+        E = E[order]
+        psi_order = psi[:, order]
+
+        return E,psi_order
 
     def dynSEQ_1d(self, x, t, V, f):
         
@@ -549,6 +547,9 @@ class SolvePDE:
 
         return w
     
+    def HeatEq_2d(self, a, x, t):
+
+        return 1
 
 class SolveSDE:
     def solveSDE(x):
