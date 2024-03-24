@@ -515,7 +515,6 @@ class SolvePDE:
         Nx = np.size(x)
         dx = (x[-1] - x[0])/Nx
 
-        #H_temp = np.zeros((Nx,Nx))
         if isinstance(V, np.ndarray):
             H = (1/dx**2) * ( np.diag(2*np.ones(Nx)) - np.diag(np.ones(Nx-1),1) - np.diag(np.ones(Nx-1),-1) ) + np.diag(V)
         else:
@@ -525,7 +524,7 @@ class SolvePDE:
 
         return E,psi
 
-    def dynSEQ_1d(self, x, t, V, f, V_tindep = True):
+    def dynSEQ_1d(self, x, t, V, f):
         
         Nx = np.size(x)
         Nt = np.size(t)
@@ -533,40 +532,28 @@ class SolvePDE:
         k = (t[-1] - t[0])/Nt
         h = (x[-1] - x[0])/Nx
 
-        lamb1 = 1
-        lamb2 = 1
+        lamb1 = 1j*k/h**2
+        lamb2 = 1j*k/2
 
         w = np.zeros((Nx,Nt), dtype='complex_')
 
-        if isinstance(f, np.ndarray):
-            w[:,0] = f 
-        else:
-            w[:,0] = f(x)
+        w[:,0] = f(x)
 
-        if V_tindep:
-            if isinstance(V, np.ndarray):
-                V_pot = V
-            else: 
-                V_pot = V(x[1:-1])
+        V_pot = V(x[1:-1])
 
-            A = np.diag( (1+lamb1)*np.ones(Nx-2) + lamb2 * V_pot ) - np.diag( lamb1 / 2 * np.ones(Nx-3), 1) - np.diag( lamb1 / 2 * np.ones(Nx-3), -1)
-            B = np.diag( (1-lamb1)*np.ones(Nx-2) - lamb2 * V_pot ) + np.diag( lamb1 / 2 * np.ones(Nx-3), 1) + np.diag( lamb1 / 2 * np.ones(Nx-3), -1)
-
-            for j in range(1, Nt):
-                w[1:-1, j] = np.dot(spla.inv(A),B@w[1:-1,j-1])
-        
-        else:
-            if isinstance(V, np.ndarray):
-                V_pot = V
-            else: 
-                V_pot = V(x[1:-1],t[1:-1])
+        A = np.diag( (1+lamb1)*np.ones(Nx-2) + lamb2 * V_pot ) - np.diag( lamb1 / 2 * np.ones(Nx-3), 1) - np.diag( lamb1 / 2 * np.ones(Nx-3), -1)
+        B = np.diag( (1-lamb1)*np.ones(Nx-2) - lamb2 * V_pot ) + np.diag( lamb1 / 2 * np.ones(Nx-3), 1) + np.diag( lamb1 / 2 * np.ones(Nx-3), -1)
+    
+        for j in range(1, Nt):
+            w[1:-1, j] = np.dot(spla.inv(A),B@w[1:-1,j-1])
 
         return w
     
 
 class SolveSDE:
-    def solveSDE(x = None):
-
+    def solveSDE(x):
+        x = 1
         return x
     
 ode_ivp = ODEivp()
+pde_solve = SolvePDE()
