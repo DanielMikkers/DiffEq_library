@@ -472,8 +472,8 @@ class SolvePDE:
             a : scalar, coefficient in wave equation
             x : array, the domain on which you want to define the PDE
             t : array, the time domain on which you want to solve the PDE
-            f : function taking in arrays, boundary condition of u(x,0)
-            g : function taking in arrays, boundary condition of u_t(x,0)
+            f : function taking in arrays, boundary condition of w(x,0)
+            g : function taking in arrays, boundary condition of w_t(x,0)
 
         Output:
             w : nxm array, which is the approximate solution of the wave equation.
@@ -497,6 +497,15 @@ class SolvePDE:
 
         A = diag + off_diag_u + off_diag_b
 
+        if isinstance(f, function):
+            if isinstance(g, function):
+                pass
+            else:
+                raise TypeError("'g' should be of type 'function'")
+        else:
+            raise TypeError("'f' should be of type 'function'")
+            
+
         for j in range(n):
             if j == 0:
                 w[j, 1:-1] = f(x[1:-1])
@@ -509,6 +518,15 @@ class SolvePDE:
         return w
     
     def statSEQ_1d(self, x, V):
+        """
+        Input:
+            x : one dimensional array, space domain of wave equation
+            V : function, the potential in which the SEQ is solved
+        
+        Output:
+            E         : one dimensional array, ordered array of energies
+            psi_order : nxm array, ordered array of wave function solutions
+        """
         Nx = np.size(x)
         dx = (x[-1] - x[0])/Nx
 
@@ -523,7 +541,17 @@ class SolvePDE:
         return E,psi_order
 
     def dynSEQ_1d(self, x, t, V, f):
-        
+        """
+        Input:
+            x : array, the domain on which you want to define the PDE
+            t : array, the time domain on which you want to solve the PDE
+            V : function, potential in which the SEQ is solved
+            f : function, boundary condition of w_t(x,0)
+
+        Output:
+            w : nxm array, which is the approximate solution of the SEQ equation.
+        """
+
         Nx = np.size(x)
         Nt = np.size(t)
 
@@ -537,7 +565,10 @@ class SolvePDE:
 
         w[:,0] = f(x)
 
-        V_pot = V(x[1:-1])
+        if isinstance(V, function):
+            V_pot = V(x[1:-1])
+        else:
+            raise TypeError("'V' should be of type 'function'")
 
         A = np.diag( (1+lamb1)*np.ones(Nx-2) + lamb2 * V_pot ) - np.diag( lamb1 / 2 * np.ones(Nx-3), 1) - np.diag( lamb1 / 2 * np.ones(Nx-3), -1)
         B = np.diag( (1-lamb1)*np.ones(Nx-2) - lamb2 * V_pot ) + np.diag( lamb1 / 2 * np.ones(Nx-3), 1) + np.diag( lamb1 / 2 * np.ones(Nx-3), -1)
@@ -547,9 +578,53 @@ class SolvePDE:
 
         return w
     
-    def HeatEq_2d(self, a, x, t):
+    def DiffEq_const_2d(self, D, x, y, t, g, f = False):
+        """
+        Input:
+            D : scalar, diffusion coefficient in wave equation
+            x : array, x coordinate the domain on which you want to define the PDE
+            y : array, y coordinate the domain on which you want to define the PDE
+            t : array, the time domain on which you want to solve the PDE
+            g : function, boundary condition of u_t(x,0)
+            f : function, source function for PDE
 
-        return 1
+        Output:
+            u : Nxmxm array, which is the approximate solution of the 2D diffusion 
+                equation with constant coefficient.
+        """
+        Nx = np.size(x)
+        Ny = np.size(y)
+
+        if Nx != Ny:
+            raise ValueError("x and y need to have the same dimensions.")
+
+        Nt = np.size(t)
+        dx = (x[-1] - x[0]) / Nx
+        dy = (y[-1] - y[0]) / Ny
+        dt = (t[-1] - t[0]) / Nt
+
+        lamb = D * dt / (2 * dx**2)
+        mu = D *  dt / (2 * dy**2)
+
+        if isinstance(f, bool):
+            F_source = np.zeros((Nt,Nx,Ny))
+        elif isinstance(f,function):
+            F_source = f(t,x,y)
+        else:
+            raise TypeError("'f' should be of type 'function'")
+
+        u = np.zeros((Nt,Nx,Ny))
+        u[0] = g(x,y)
+
+        A_1 = np.diag((1+2*lamb)*np.ones(Nx-2)) - np.diag( lamb * np.ones(Nx-3), 1) - np.diag( lamb * np.ones(Nx-3), -1)
+        A_2 = np.diag((1-2*lamb)*np.ones(Nx-2)) + np.diag( lamb * np.ones(Nx-3), 1) + np.diag( lamb * np.ones(Nx-3), -1)
+        B_1 = np.diag((1+2*mu)*np.ones(Nx-2)) - np.diag( mu * np.ones(Nx-3), 1) - np.diag( mu * np.ones(Nx-3), -1)
+        B_2 = np.diag((1-2*mu)*np.ones(Nx-2)) + np.diag( mu * np.ones(Nx-3), 1) + np.diag( mu * np.ones(Nx-3), -1)
+
+        for i in range(1,Nt):
+            u[i,1:-1,1:-1] = spla.inv(B_1)@(B_2@(spla.inv(A_1)@(A_2@u[i-1,1:-1,1:-1]))) + F_source[i,1:-1,1:-1] / 2 + F_source[i-1,1:-1,1:-1] / 2
+
+        return u
 
 class SolveSDE:
     def solveSDE(x):
