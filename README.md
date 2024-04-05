@@ -265,29 +265,6 @@ Solving the above equation for $u^{k+1/2}$ and $u^{k+1}$ gives:
 $$u^{k+1/2} = A_1^{-1}A_2 u^k$$
 $$u^{n+1} = B_1^{-1}B_2 u^{n+1/2}$$
 
-with 
-
-$$A_1 = \left( \begin{array}{cccc} 1 + 2\lambda & -\lambda & & 0 \\ -\lambda & 1+2\lambda & -\lambda & \\ \\ & \ddots & \ddots & \ddots  \\  0& & -\lambda & 1+2\lambda \end{array} \right)$$ 
-$$A_2 = \left( \begin{array}{cccc} 1 - 2\lambda & \lambda & & 0 \\ \lambda & 1-2\lambda & \lambda & \\ \\ & \ddots & \ddots & \ddots  \\  0& & \lambda & 1-2\lambda \end{array} \right)$$
-$$B_1 = \left( \begin{array}{cccc} 1 + 2\mu & -\mu & & 0 \\ -\mu & 1-2\mu & -\mu & \\ \\ & \ddots & \ddots & \ddots  \\  0& & -\mu & 1-2\mu \end{array} \right)$$
-$$B_2 = \left( \begin{array}{cccc} 1 - 2\mu & \mu & & 0 \\ \mu & 1-2\mu & \mu & \\ \\ & \ddots & \ddots & \ddots  \\  0& & \mu & 1-2\mu \end{array} \right)$$
-
-with $\lambda = \frac{D \Delta t}{2(\Delta x)^2}$ and $\mu = \frac{D \Delta t}{2(\Delta y)^2}$, are $(m-2)\times (m-2)$ matrices. 
-
-Then the final procedure, including some source term, may be 
-
-$${u}^{n+1}_{1:m-1} = B_1^{-1}B_2A_1^{-1}A_2 u^n_{1:m-1} + \frac{1}{2}f^n + \frac{1}{2}f^{n+1}.$$
-
-Where ${u}^{n+1}$ is the solution where the boundaries are 
-
-The boundary conditions are Von Neumann type boundary conditions:
-
-$$\frac{\partial}{\partial x} u(x_0,y,t) = 0 = \frac{\partial}{\partial x} u(x_n,y,t)$$
-$$\frac{\partial}{\partial y} u(x,y_0,t) = 0 = \frac{\partial}{\partial x} u(x,y_n,t)$$
-$$u(x,y,0) = g(x,y)$$
-
-where $(x_0,y),(x_n,y),(x,y_0),(x,y_m)$ are the boundaries of the system. Note that the source term $f(t,x,y)$ needs to fulfill the boundary conditions of the system, i.e. $f(t,x,y)$ need to have stationary boundaries. 
-
 The 2D diffusion equation with constant diffusion coefficient solver is called by calling `DiffEq_const_2d(D, x, y, t, g, f)`. The function returns the solution of the differential equation with the given parameters and boundary conditions `u`, which is an $N\times m \times m$ array. The cross sections are as follows:
 - The solution of to the PDE at time $t_0 = j_0 \Delta t$: `u[j_0]` is an $m \times m$ array
 - The solution of of the $x$ direction in time at some constant $y_0 = k_0 \Delta y$: `u[:,:,k_0]`
