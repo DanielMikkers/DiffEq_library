@@ -468,6 +468,10 @@ class ODEivp:
 class SolvePDE:
     def waveEq(self, a, x, t, f, g):
         """
+        This function solves the wave equation of the form 
+            u_tt = a^2 u_xx
+        where a is some scalar value. 
+
         Input:
             a : scalar, coefficient in wave equation
             x : array, the domain on which you want to define the PDE
@@ -519,6 +523,9 @@ class SolvePDE:
     
     def statSEQ_1d(self, x, V):
         """
+        This function solves the static or time independent Schrodinger 
+        equation, for some potential V on domain x.
+
         Input:
             x : one dimensional array, space domain of wave equation
             V : function, the potential in which the SEQ is solved
@@ -542,6 +549,9 @@ class SolvePDE:
 
     def dynSEQ_1d(self, x, t, V, f):
         """
+        This function solves the dynamic Schrodinger equation, for some 
+        potential V on time domain t and space domain x, with boundary condition f.
+
         Input:
             x : array, the domain on which you want to define the PDE
             t : array, the time domain on which you want to solve the PDE
@@ -580,6 +590,10 @@ class SolvePDE:
 
     def DiffusionEq_const(self, D, x, y, t, g, h_1 = None, h_2 = None, h_3 = None, h_4 = None, f = None):
         """
+        This function solves the diffusion equation for constant diffusion
+        coefficient D, on spacial domain (x,y) and time domain t, with boundary 
+        conditions g and h_i.
+
         Input:
             D   : scalar, diffusion coefficient in wave equation
             x   : array, x coordinate the domain on which you want to define the PDE
@@ -756,6 +770,10 @@ class SolvePDE:
     
     def DiffusionEq_tdep(self, D, x, y, t, g, h_1 = None, h_2 = None, h_3 = None, h_4 = None, f = None):
         """
+        This function solves the diffusion equation for time dependent diffusion 
+        coefficient D, on spacial domain (x,y) and time domain t, with boundary
+        conditions g and h_i.
+
         Input:
             D   : 1D array, time dependent diffusion coefficient in diffusion equation
             x   : array, x coordinate the domain on which you want to define the PDE
@@ -939,167 +957,10 @@ class SolvePDE:
 
         return u
 
-    def DiffusionEq_posdep(self, D, x, y, t, g, h_1 = None, h_2 = None, h_3 = None, h_4 = None, f = None):
-        """
-        Input:
-            D   : 2D array, position dependent diffusion coefficient in diffusion eq
-            x   : array, x coordinate the domain on which you want to define the PDE
-            y   : array, y coordinate the domain on which you want to define the PDE
-            t   : array, the time domain on which you want to solve the PDE
-            g   : function or 2D array, boundary condition of u; u(0,x,y)
-            h_i : function or 2D array, boundary condtion of u; i=1,2 u(t,x)
-            h_i : function or 2D array, boundary condtion of u; i=3,4 u(t,y)
-            f   : function or 3D array, source function for PDE
-
-        Output:
-            u : 3D array (Nt, Nx, Ny), which is the approximate solution of the 2D 
-                diffusion equation with constant coefficient.
-        """
-        Nx = np.size(x)
-        Ny = np.size(y)
-
-        shape_x = np.shape(x)
-        shape_y = np.shape(y)
-
-        if np.size(shape_x) == 1:
-            if np.size(shape_y) == 1:
-                pass
-            else:
-                raise TypeError("'y' should be a 1D array")
-        else:
-            raise TypeError("'x' should be a 1D array")
-
-        if Nx != Ny:
-            raise ValueError("x and y need to have the same dimensions.")
-        
-        if isinstance(D, np.ndarray):
-            D_size = np.size(np.shape(D))
-            if D_size == 1:
-                pass
-            else:
-                raise IndexError("Diffusion coefficient should be one dimensional")
-        elif isinstance(D, function):
-            D = D(t)
-            D_size = np.size(np.shape(D))
-            if D_size == 1:
-                pass
-            else:
-                raise IndexError("Diffusion coefficient should be one dimensional")
-        else:
-            raise TypeError("Diffusion coefficient 'D' should be a 1D array or of type 'function'")
-
-        Nt = np.size(t)
-        dx = (x[-1] - x[0]) / Nx
-        dy = (y[-1] - y[0]) / Ny
-        dt = (t[-1] - t[0]) / Nt
-
-        if f is None:
-            F_source = np.zeros((Nt,Nx,Ny))
-        elif isinstance(f,function):
-            F_source = f(t,x,y)
-        elif isinstance(f, np.ndarray):
-            shape_f = np.shape(f)
-            if shape_f[0] == Nt:
-                if shape_f[1] == Nx:
-                    if shape_f[2] == Ny:
-                        pass
-                    else:
-                        raise IndexError("Index structure not correct: numpy.shape(g)[2] != numpy.size(y)")
-                else:
-                    raise IndexError("Index structure not correct: numpy.shape(g)[1] != numpy.size(x)")
-            else: 
-                raise IndexError("Index structure not correct: numpy.shape(g)[0] != np.size(t)")
-        else: 
-            raise TypeError("'f' should be of type 'function' or 'numpy.ndarray'")
-
-        u = np.zeros((Nt,Nx,Ny))
-
-        if isinstance(g,function):
-            u[0] = g(x,y)
-        elif isinstance(g, np.ndarray):
-            shape_g = np.shape(g)
-            if shape_g[0] == Nx:
-                if shape_g[1] == Ny:
-                    pass
-                else:
-                    raise IndexError("Index structure not correct: numpy.shape(g)[1] != numpy.size(y)")
-            else: 
-                raise IndexError("Index structure not correct: numpy.shape(g)[0] != np.size(x)")
-        else: 
-            raise TypeError("'g' should be of type 'function' or 'numpy.ndarray'")
-        
-        if h_1 is None:
-            h_1 = np.zeros(Nx)
-        elif isinstance(h_1,function):
-            h_1 = h_1(t,x)
-        elif isinstance(h_1,np.ndarray):
-            shape_h1 = np.shape(h_1)
-            if shape_h1[0] == Nt:
-                if shape_h1[1] == Nx:
-                    pass
-                else:
-                    raise IndexError("Index structure not correct: numpy.shape(h_1)[1] != numpy.size(x)")
-            else: 
-                raise IndexError("Index structure not correct: numpy.shape(h_1)[0] != np.size(t)")
-        else: 
-            raise TypeError("'h_1' should be of type 'function' or 'numpy.ndarray'")
-        
-        if h_2 is None:
-            h_2 = np.zeros(Nx)
-        elif isinstance(h_1,function):
-            h_2 = h_2(t,x)
-        elif isinstance(h_2,np.ndarray):
-            shape_h2 = np.shape(h_2)
-            if shape_h2[0] == Nt:
-                if shape_h2[1] == Nx:
-                    pass
-                else:
-                    raise IndexError("Index structure not correct: numpy.shape(h_2)[1] != numpy.size(x)")
-            else: 
-                raise IndexError("Index structure not correct: numpy.shape(h_2)[0] != np.size(t)")
-        else: 
-            raise TypeError("'h_2' should be of type 'function' or 'numpy.ndarray'")
-        
-        if h_3 is None:
-            h_3 = np.zeros(Nx)
-        elif isinstance(h_3,function):
-            h_3 = h_3(t,x)
-        elif isinstance(h_3,np.ndarray):
-            shape_h3 = np.shape(h_3)
-            if shape_h3[0] == Nt:
-                if shape_h3[1] == Ny:
-                    pass
-                else:
-                    raise IndexError("Index structure not correct: numpy.shape(h_3)[1] != numpy.size(y)")
-            else: 
-                raise IndexError("Index structure not correct: numpy.shape(h_3)[0] != np.size(t)")
-        else: 
-            raise TypeError("'h_3' should be of type 'function' or 'numpy.ndarray'")
-        
-        if h_4 is None:
-            h_4 = np.zeros(Nx)
-        elif isinstance(h_4,function):
-            h_4 = h_4(t,x)
-        elif isinstance(h_4,np.ndarray):
-            shape_h4 = np.shape(h_4)
-            if shape_h4[0] == Nt:
-                if shape_h4[1] == Ny:
-                    pass
-                else:
-                    raise IndexError("Index structure not correct: numpy.shape(h_4)[1] != numpy.size(y)")
-            else: 
-                raise IndexError("Index structure not correct: numpy.shape(h_4)[0] != np.size(t)")
-        else: 
-            raise TypeError("'h_4' should be of type 'function' or 'numpy.ndarray'")
-
-        
-
-        return u
-
 class SolveSDE:
     def solveSDE(x):
         x = 1
         return x
     
-ode_ivp = ODEivp()
+ode_solve = ODEivp()
 pde_solve = SolvePDE()

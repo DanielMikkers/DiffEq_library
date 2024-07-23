@@ -287,8 +287,9 @@ def f(t,x,y):
     return np.exp(-tv)*np.sin(xv+yv)
 ```
 
+### 2D Diffusion Equation with Time-Dependent Diffusion Coefficient
 
-## Stochastic Differential Equations
+
 
 ## Error of methods & recommandation
 ### ODEs
@@ -313,3 +314,11 @@ In the figure below the absolute error of the numerical solution at the end of t
 <img src="https://github.com/DanielMikkers/DiffEq_library/blob/main/Error_step_size.png" width="600" height="450">
 
 Combining the information of both figures it can be seen that the Adam-Bashforth 3 step method is the most optimal solving method and Euler the least optimal solving method. Generally, it is recommanded to use the Adam-Bashforth 3 step method (`'ab3'`). 
+
+### Wave Equation
+
+### Static Schrödinger Equation
+
+### Dynamic Schrödinger Equation
+
+### Diffusion Equation with constant 
